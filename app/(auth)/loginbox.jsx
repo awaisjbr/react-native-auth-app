@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -7,26 +7,30 @@ import lockImage from "../../assets/images/lock.png";
 import lockIcon from "../../assets/images/lock1.png";
 import userIcon from "../../assets/images/user.png";
 import Loading from "../../components/Loading";
+import { useAuthStore } from "../../store/useAuthContext";
 
 const LoginBox = () => {
   const router = useRouter();
+  const {login, isLoading, isAuthenticated} = useAuthStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    setLoading(true);
+  const handleSubmit = async () => {
     try {
-      setTimeout(() => {
-        router.push("/home");
-        setLoading(false);
-      }, 2000);
+      await login(formData);
     } catch (error) {
       console.log(error.message);
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/home");
+    }
+  }, [isAuthenticated]);
 
   return (
     <SafeAreaView className="bg-[#2b2b2b] min-h-screen">
@@ -43,7 +47,7 @@ const LoginBox = () => {
               <TextInput
                 placeholder="Enter User Name"
                 keyboardType="email-address"
-                className="flex-1"
+                className="flex-1 h-full outline-none"
                 value={formData.email}
                 onChangeText={(text) => setFormData((prev) => ({ ...prev, email: text }))} />
             </View>
@@ -54,14 +58,14 @@ const LoginBox = () => {
               <TextInput
                 placeholder="*****"
                 secureTextEntry
-                className="flex-1"
+                className="flex-1 h-full outline-none"
                 value={formData.password}
                 onChangeText={(text) => setFormData((prev) => ({ ...prev, password: text }))} />
             </View>
 
             {/* BUTTON */}
             <TouchableOpacity
-              disabled={loading}
+              disabled={isLoading}
               className="p-2 w-[50%] mx-auto h-12 my-2 bg-[#f49b33] rounded-lg"
               onPress={handleSubmit} >
               <Text className="text-lg font-semibold text-center">Login</Text>
@@ -70,7 +74,7 @@ const LoginBox = () => {
 
           <Image source={lockImage} style={{ width: 150, height: 150 }} />
           
-          {loading && <Loading />}
+          {isLoading && <Loading />}
         </View>
       </ScrollView>
     </SafeAreaView>
